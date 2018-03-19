@@ -7,6 +7,7 @@
     android:background="#264169e1">
 
     <TextView
+        android:id="@+id/temperature_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
@@ -37,6 +38,7 @@
             android:textSize="26sp" />
 
         <TextView
+            android:id="@+id/current_text"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="bottom|end"
@@ -72,6 +74,7 @@
             android:textSize="26sp" />
 
         <TextView
+            android:id="@+id/weather_text"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="bottom|end"
@@ -109,6 +112,7 @@
             android:textSize="26sp" />
 
         <Switch
+            android:id="@+id/led_switch"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:switchMinWidth="60dp" />
@@ -141,6 +145,7 @@
             android:textSize="26sp" />
 
         <Switch
+            android:id="@+id/auto_light_switch"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:switchMinWidth="60dp" />
@@ -174,6 +179,7 @@
             android:textSize="26sp" />
 
         <Switch
+            android:id="@+id/power_switch"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:switchMinWidth="60dp" />
@@ -206,6 +212,7 @@
             android:textSize="26sp" />
 
         <Switch
+            android:id="@+id/window_auto_switch"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:switchMinWidth="60dp" />
@@ -240,6 +247,7 @@
             android:text="关"/>
 
         <SeekBar
+            android:id="@+id/window_seek"
             android:layout_width="320dp"
             android:layout_height="wrap_content" />
 

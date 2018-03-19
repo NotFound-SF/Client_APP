@@ -19,11 +19,16 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.SeekBar;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.w3c.dom.Text;
+
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 
 
@@ -34,7 +39,7 @@ public class HandlerActivity extends AppCompatActivity implements View.OnClickLi
     private static final String TAG = "HandlerActivity";
     private static final String USER_ID_KEY = "learn.userID";
     private static final String DEVICE_ID_KEY = "learn.deviceID";
-    private static final String SERVER_ADDRESS = "192.168.2.106";    // 服务器地址
+    private static final String SERVER_ADDRESS = "192.168.1.105";    // 服务器地址
     private static final int SERVER_PORT = 2048;                     // 服务器端口
     private boolean mConnectedFlag = false;                          // 网络连接情况
     private boolean mMainThreadEndFlag = false;                      // 判断主线程退出标志
@@ -52,7 +57,16 @@ public class HandlerActivity extends AppCompatActivity implements View.OnClickLi
     private SharedPreferences mConfig = null;
     private SharedPreferences.Editor mConfigEditor = null;
 
-    int len;                                                 // 读取到的字符长度
+    // View类型
+
+    private Switch   mLedSwitch        = null;
+    private Switch   mPowerSwitch      = null;
+    private TextView mCurrentText      = null;
+    private TextView mWeatherText      = null;
+    private SeekBar  mWindowSeekBar    = null;
+    private Switch   mLightAutoSwitch  = null;
+    private TextView mTemperatureText  = null;
+    private Switch   mWindowAutoSwitch = null;
 
 
 
@@ -73,22 +87,40 @@ public class HandlerActivity extends AppCompatActivity implements View.OnClickLi
         mUserID = getIntent().getIntExtra(USER_ID_KEY, 0);
         mDeviceID = getIntent().getIntExtra(DEVICE_ID_KEY, 0);
         mSetDataFormat.userID.set(mUserID);
-        mGetDataFormat.userID.set(mUserID);
         mSetDataFormat.deviceID.set(mDeviceID);
-        mGetDataFormat.deviceID.set(mDeviceID);
+//        mGetDataFormat.userID.set(mUserID);
+//        mGetDataFormat.deviceID.set(mDeviceID);
+
         // 该项对于APP接收是没有意义的，主要是供单片机解析
         mSetDataFormat.operation.set((short)0xFF);                              // 单片机端解析为设置数据
         mGetDataFormat.operation.set((short)0x00);                              // 单片机解析为读取数据
 
+        // 绑定将布局文件中的view到UI控件
+
+        mLedSwitch        = (Switch)   findViewById(R.id.led_switch);
+        mPowerSwitch      = (Switch)   findViewById(R.id.power_switch);
+        mCurrentText      = (TextView) findViewById(R.id.current_text);
+        mWeatherText      = (TextView) findViewById(R.id.weather_text);
+        mWindowSeekBar    = (SeekBar)  findViewById(R.id.window_seek);
+        mTemperatureText  = (TextView) findViewById(R.id.temperature_text);
+        mLightAutoSwitch  = (Switch)   findViewById(R.id.auto_light_switch);
+        mWindowAutoSwitch = (Switch)   findViewById(R.id.window_auto_switch);
+
         // 创建一个接受线程当数据到达时更新UI-----------------------------------------------------------------------------------
         mRecvThread = new Thread(new Runnable() {
+
             @Override
             public void run() {
+                int         recv_len;                                                     // 读取到的字符长度
+                int         data_size = mGetDataFormat.size();                            // 一帧数据长度
+
                 Restart:
                 while (!mMainThreadEndFlag) {
                     // 创建与服务器连接的socket,与输入输出流必须在子线程创建才能保证成功
                     try {
-                        socket = new Socket(SERVER_ADDRESS, SERVER_PORT);
+                        socket = new Socket();
+                        // 连接到服务器，两秒内连接不成功就放弃，该函数可能会抛出异常
+                        socket.connect(new InetSocketAddress(SERVER_ADDRESS, SERVER_PORT), 2000);
                         mSockInStream = socket.getInputStream();
                         mSockOutStream = socket.getOutputStream();
                         mConnectedFlag = true;                                         // 表示网络连接成功
@@ -100,28 +132,81 @@ public class HandlerActivity extends AppCompatActivity implements View.OnClickLi
                             }
                         });
 
-                        // 循环读取数据
-                        while (!mMainThreadEndFlag) {                                 // 可能读会出现数据混乱
-                            if (mGetDataFormat.size() == (len = mGetDataFormat.read(mSockInStream))) {
+                        // 接受单片机端回传的数据
+                        while (!mMainThreadEndFlag) {                                 // 接受到的数据可能会出错
+                            if (data_size == (recv_len = mGetDataFormat.read(mSockInStream))) {
+
+                                // 保证要设置的数据与单片机端回传的数据相同，需要互斥操作
+                                mSetDataFormat = new DataFormat(mGetDataFormat);
+                                mSetDataFormat.userID.set(mUserID);
+                                mSetDataFormat.deviceID.set(mDeviceID);
+
                                 // 根据读取到的数据更新UI
                                 runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {                               // 解析接收到的数据更新UI
-                                       // mRecvText.setText(new String(buf, 0, len));
+                                        mCurrentText.setText(""+mGetDataFormat.current.get()+"A");           // 设置电流
+                                        mTemperatureText.setText(""+mGetDataFormat.temperature.get()+"℃");  // 设置温度
+
+                                        if (0 == mGetDataFormat.rainStatus.get())                            // 表示晴天
+                                            mWeatherText.setText("晴");
+                                        else if (0xFF == mGetDataFormat.rainStatus.get())
+                                            mWeatherText.setText("雨");
+
+                                        if (0xFF == mGetDataFormat.ledAuto.get())                            // 设置光控开关
+                                            mLightAutoSwitch.setChecked(true);
+                                        else if (0 == mGetDataFormat.ledAuto.get())
+                                            mLightAutoSwitch.setChecked(false);
+
+                                        if (0xFF == mGetDataFormat.ledSwitch.get())                          // 设置照明开关
+                                            mLedSwitch.setChecked(true);
+                                        else if (0 == mGetDataFormat.ledSwitch.get())
+                                            mLedSwitch.setChecked(false);
+
+                                        if (0xFF == mGetDataFormat.powerSwitch.get())                         // 设置电源开关
+                                            mPowerSwitch.setChecked(true);
+                                        else if (0 == mGetDataFormat.powerSwitch.get())
+                                            mPowerSwitch.setChecked(false);
+
+                                        if (0xFF == mGetDataFormat.windowAuto.get())                         // 设置自动开关窗开关
+                                            mWindowAutoSwitch.setChecked(true);
+                                        else if (0 == mGetDataFormat.windowAuto.get())
+                                            mWindowAutoSwitch.setChecked(false);
+
+                                        if (0xFF == mGetDataFormat.warning.get()) {                         // 火灾报警信息
+                                            AlertDialog dialog = new AlertDialog.Builder(HandlerActivity.this)
+                                                    .setIcon(R.mipmap.warning)                               // 设置标题的图片
+                                                    .setTitle("火灾报警！")                                  // 设置对话框的标题
+                                                    .setMessage("取消火灾警报？")                            // 设置对话框的内容
+                                                      //设置对话框的按钮
+                                                    .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                                                        @Override
+                                                        public void onClick(DialogInterface dialog, int which) {
+                                                            // 发送取消报警信息
+                                                            //Toast.makeText(HandlerActivity.this, "点击了确定的按钮", Toast.LENGTH_SHORT).show();
+                                                            dialog.dismiss();                                // 消失对话框
+                                                         }
+                                                    }).create();
+                                            dialog.show();
+                                        }
+
+                                        // 设置拖动条
+                                        // mWindowSeekBar
                                     }
                                 });
-                            } else if(-1 == len){
+                            } else if(-1 == recv_len){
                                 throw new RuntimeException("netWork");              // 表示网络异常
                             }
                         }
-                        return;
+
+                        return;                                                     // 退出子线程
                     } catch (Exception e) {
                         if (mConnectedFlag) {                                       // 如果先前连接成功就释放
                             try {
                                 socket.close();
                             } catch (Exception e1) {
                             }
-                            mConnectedFlag = false;                                  // 表示网络连接失败
+                            mConnectedFlag = false;                                 // 表示网络连接失败
                         } else {
                             runOnUiThread(new Runnable() {
                                 @Override
@@ -133,10 +218,10 @@ public class HandlerActivity extends AppCompatActivity implements View.OnClickLi
                             Log.e(TAG, "Create socket error");
                         }
                         try {
-                            Thread.sleep(1500);                            // 睡眠1秒
+                            Thread.sleep(6000);                              // 睡眠6秒音每次相应时间间隔比较大
                         } catch (Exception e1) {
                         }
-                        continue Restart;                                         // 重新启动连接
+                        continue Restart;                                           // 重新启动连接
                     }
                 }
             }
@@ -172,8 +257,8 @@ public class HandlerActivity extends AppCompatActivity implements View.OnClickLi
             public void run() {
                 DataFormat alive = new DataFormat();
                 alive.userID.set(mUserID);
-                alive.deviceID.set(0);                                  // 目标ID为0表示存活信息(应该添加数据请求)
-                alive.operation.set((short)0x00);                       // 表示请求数据
+                alive.deviceID.set(mDeviceID);                          // 并非单纯的存活,而是周期性的数据请求
+                alive.operation.set((short)0x00);                       // 表示向单片机请求数据
 
                 while (!mMainThreadEndFlag) {
                     // 如果连接成功就不断发送脉搏信息
@@ -195,49 +280,34 @@ public class HandlerActivity extends AppCompatActivity implements View.OnClickLi
             }
         });
         mAliveThread.start();
-
-
-//        // 绑定布局
-//        mRecvText = (TextView) findViewById(R.id.output);
-//        mInputEdit = (EditText) findViewById(R.id.input);
-//        mSendButton = (Button) findViewById(R.id.buttonSend);
-//        mWarning = (Button) findViewById(R.id.buttonDialog);
-
-//        // 设置监听器
-//        mSendButton.setOnClickListener(this);
-//        mWarning.setOnClickListener(this);
     }
 
     // 快捷键alt + shift + p 重写监听函数
     @Override
     public void onClick(View v) {
-//        switch (v.getId()) {
-//            case R.id.buttonSend:
-//                mInString = mInputEdit.getText().toString().trim();
-//                if (!TextUtils.isEmpty(mInString)) {                // 编辑框非空
-//                    mSendHandler.sendEmptyMessage(1);
-//                } else {
-//                    mRecvText.setText("");
-//                }
-//                break;
-//
-//            case R.id.buttonDialog:
-//                AlertDialog dialog = new AlertDialog.Builder(this)
-//                        .setIcon(R.mipmap.warning)                                //设置标题的图片
-//                        .setTitle("火灾报警！")                               //设置对话框的标题
-//                        .setMessage("取消火灾警报？")                             //设置对话框的内容
-//                        //设置对话框的按钮
-//                        .setPositiveButton("确定", new DialogInterface.OnClickListener() {
-//                            @Override
-//                            public void onClick(DialogInterface dialog, int which) {
-//                                // 发送取消报警信息
-//                                //Toast.makeText(HandlerActivity.this, "点击了确定的按钮", Toast.LENGTH_SHORT).show();
-//                                dialog.dismiss();
-//                            }
-//                        }).create();
-//                dialog.show();
-//                break;
-//        }
+        switch (v.getId()) {
+
+            case R.id.led_switch:                // 设置照明开关
+                Toast.makeText(this, "led_switch", Toast.LENGTH_SHORT).show();
+                break;
+
+            case R.id.auto_light_switch:         // 自动照明设置
+                Toast.makeText(this, "auto_light_switch", Toast.LENGTH_SHORT).show();
+                break;
+
+            case R.id.power_switch:              // 设置了电源
+                Toast.makeText(this, "power_switch", Toast.LENGTH_SHORT).show();
+                break;
+
+            case R.id.window_auto_switch:       // 设置了下雨自动关窗
+                Toast.makeText(this, "window_auto_switch", Toast.LENGTH_SHORT).show();
+                break;
+        }
+
+        Log.e(TAG, "监听到View被触发");
+
+        // 交由发送线程处理
+
     }
 
     // 添加菜单项

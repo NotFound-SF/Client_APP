@@ -81,7 +81,6 @@ public class ConfigActivity extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-//                final InfoStruct infoStruct = new InfoStruct();         // 用于存储单片机端发送的数据
                 int   readLen;                                            // 读取到的字节长度
                 int   dat_len;
                 int   infoSize = infoStruct.size();                       // 存储结构体长度
@@ -92,7 +91,7 @@ public class ConfigActivity extends AppCompatActivity {
                 while (!threadEndUi) {                                    // UI线程结束时结束该线程
                     // 创建与服务器连接的socket,与输入输出流必须在子线程创建才能保证成功
                     try {
-                        Socket socket = new Socket();                     // 创建一个未连接的socket
+                       socket = new Socket();                     // 创建一个未连接的socket
 
                         // 连接到服务器，两秒内连接不成功就放弃，该函数可能会抛出异常
                         socket.connect(new InetSocketAddress(SERVER_ADDRESS, SERVER_PORT), 2000);
@@ -168,7 +167,7 @@ public class ConfigActivity extends AppCompatActivity {
                             Log.e(TAG, "Create socket error");
                         }
                         try {
-                            Thread.sleep(6000);                               // 睡眠3.6秒音每次相应时间间隔比较大
+                            Thread.sleep(6000);                               // 睡眠6秒音每次相应时间间隔比较大
                         } catch (Exception e1) {
                         }
                         continue ConnectRestart;                                     // 重新启动连接

@@ -19,10 +19,10 @@ public class DataFormat extends Struct{
     public final Unsigned8  rainStatus  = new Unsigned8();               // 下雨状态
     public final Unsigned8  window      = new Unsigned8();               // 窗户开度
     public final Unsigned8  windowAuto  = new Unsigned8();               // 开窗模式下下雨自动关窗
-    public final Unsigned16 temperature = new Unsigned16();              // 温度
-    public final Unsigned16 current     = new Unsigned16();              // 电流大小
+    public final Float32    temperature = new Float32();                 // 温度，由单片机解析
+    public final Float32    current     = new Float32();                 // 电流大小，由单片机解析
 
-
+    // 对齐方式
     @Override
     public boolean isPacked() {
         return true;                                                     // 对齐
@@ -32,5 +32,28 @@ public class DataFormat extends Struct{
     @Override
     public ByteOrder byteOrder() {
         return ByteOrder.LITTLE_ENDIAN;
+    }
+
+    // 创建一个构造方法
+    public DataFormat(DataFormat dat) {
+        super();
+
+        userID.set(dat.userID.get());
+        deviceID.set(dat.deviceID.get());
+        operation.set(dat.operation.get());
+        warning.set(dat.warning.get());
+        ledSwitch.set(dat.ledSwitch.get());
+        ledAuto.set(dat.ledAuto.get());
+        powerSwitch.set(dat.powerSwitch.get());
+        rainStatus.set(dat.rainStatus.get());
+        window.set(dat.window.get());
+        windowAuto.set(dat.windowAuto.get());
+        temperature.set(dat.temperature.get());
+        current.set(dat.current.get());
+    }
+
+    // 创建一个构造方法
+    public DataFormat() {
+        super();
     }
 }
