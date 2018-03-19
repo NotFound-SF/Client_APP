@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:gravity="top"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#264169e1">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:text="--℃"
+        android:textSize="30sp"
+        android:background="@drawable/bg_ring"/>
+
+
+    <!--         电流显示行            -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="50dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/current" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="bottom"
+            android:layout_marginBottom="6dp"
+            android:text="家庭电流"
+            android:textSize="26sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="bottom|end"
+            android:layout_marginBottom="6dp"
+            android:layout_marginRight="12dp"
+            android:text="0.0A"
+            android:textSize="26sp" />
+
+    </LinearLayout>
+    <!-- 行分割线 -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#60A0A0A0"/>
+
+    <!--         雨滴传感器显示行            -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="50dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/rain" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="bottom"
+            android:layout_marginBottom="6dp"
+            android:text="雨滴检测"
+            android:textSize="26sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="bottom|end"
+            android:layout_marginBottom="6dp"
+            android:layout_marginRight="12dp"
+            android:text="雨"
+            android:textSize="26sp" />
+
+    </LinearLayout>
+    <!-- 行分割线 -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#60A0A0A0"/>
+
+
+
+    <!--         LED开关行             -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="50dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/light" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="bottom"
+            android:layout_marginBottom="6dp"
+            android:text="LED照明"
+            android:textSize="26sp" />
+
+        <Switch
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:switchMinWidth="60dp" />
+
+    </LinearLayout>
+
+    <!-- 行分割线 -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#60A0A0A0"/>
+
+    <!--         LED光控行             -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="50dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/light_auto" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="bottom"
+            android:layout_marginBottom="6dp"
+            android:text="LED光控"
+            android:textSize="26sp" />
+
+        <Switch
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:switchMinWidth="60dp" />
+
+    </LinearLayout>
+
+    <!-- 行分割线 -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#60A0A0A0"/>
+
+
+    <!--         电源开关行             -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="50dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/power" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="bottom"
+            android:layout_marginBottom="6dp"
+            android:text="电源控制"
+            android:textSize="26sp" />
+
+        <Switch
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:switchMinWidth="60dp" />
+
+    </LinearLayout>
+
+    <!-- 行分割线 -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#60A0A0A0"/>
+
+    <!--         自动关窗行             -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="50dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/window" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="bottom"
+            android:layout_marginBottom="6dp"
+            android:text="自动关窗"
+            android:textSize="26sp" />
+
+        <Switch
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:switchMinWidth="60dp" />
+
+    </LinearLayout>
+
+    <!-- 行分割线 -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#60A0A0A0"/>
+
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:textSize="20sp"
+        android:gravity="center"
+        android:text="窗户控制"/>
+
+    <!--         窗链控制行             -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="关"/>
+
+        <SeekBar
+            android:layout_width="320dp"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="开"/>
+
+    </LinearLayout>
+
+
+</LinearLayout>

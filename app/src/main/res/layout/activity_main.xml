@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:gravity="top"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@mipmap/mainback">
+
+    <EditText
+        android:id="@+id/userID"
+        android:layout_marginTop="100dp"
+        android:layout_width="330dp"
+        android:layout_height="60dp"
+        android:layout_gravity="center"
+        android:inputType="number"
+        android:maxLength="8"
+        android:hint="用户ID"/>
+
+    <EditText
+        android:id="@+id/deviceID"
+        android:layout_width="330dp"
+        android:layout_height="60dp"
+        android:layout_gravity="center"
+        android:digits="0123456789"
+        android:inputType="textPassword"
+        android:maxLength="8"
+        android:hint="设备ID"/>
+
+    <Button
+        android:id="@+id/loginButton"
+        android:layout_width="322dp"
+        android:layout_height="42dp"
+        android:layout_gravity="center"
+        android:background="#264169e1"
+        android:hint="登录"
+        android:textSize="22sp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <CheckBox
+            android:id="@+id/rememberCheck"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="16dp"
+            android:text="记住账号" />
+
+        <TextView
+            android:id="@+id/config"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="178dp"
+            android:textColor="#A04169FF"
+            android:text="设备配置"/>
+
+    </LinearLayout>
+
+
+
+    <TextView
+        android:id="@+id/textAbout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:layout_marginTop="210dp"
+        android:layout_gravity="center"
+        android:textColor="#804169e1"
+        android:text="关于APP说明"/>
+
+</LinearLayout>
