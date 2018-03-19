@@ -88,8 +88,8 @@ public class HandlerActivity extends AppCompatActivity implements View.OnClickLi
         mDeviceID = getIntent().getIntExtra(DEVICE_ID_KEY, 0);
         mSetDataFormat.userID.set(mUserID);
         mSetDataFormat.deviceID.set(mDeviceID);
-//        mGetDataFormat.userID.set(mUserID);
-//        mGetDataFormat.deviceID.set(mDeviceID);
+        mGetDataFormat.userID.set(mUserID);
+        mGetDataFormat.deviceID.set(mDeviceID);
 
         // 该项对于APP接收是没有意义的，主要是供单片机解析
         mSetDataFormat.operation.set((short)0xFF);                              // 单片机端解析为设置数据
@@ -108,6 +108,8 @@ public class HandlerActivity extends AppCompatActivity implements View.OnClickLi
 
         // 创建一个接受线程当数据到达时更新UI-----------------------------------------------------------------------------------
         mRecvThread = new Thread(new Runnable() {
+
+            private boolean     dialog_flag = false;                                      // 检测对话框是否已经存在
 
             @Override
             public void run() {
@@ -134,8 +136,10 @@ public class HandlerActivity extends AppCompatActivity implements View.OnClickLi
 
                         // 接受单片机端回传的数据
                         while (!mMainThreadEndFlag) {                                 // 接受到的数据可能会出错
-                            if (data_size == (recv_len = mGetDataFormat.read(mSockInStream))) {
 
+                            recv_len = mGetDataFormat.read(mSockInStream);            // 阻塞等待读取数据
+
+                            if (data_size == recv_len) {                              // 标书数据未发生错误
                                 // 保证要设置的数据与单片机端回传的数据相同，需要互斥操作
                                 mSetDataFormat = new DataFormat(mGetDataFormat);
                                 mSetDataFormat.userID.set(mUserID);
@@ -148,32 +152,33 @@ public class HandlerActivity extends AppCompatActivity implements View.OnClickLi
                                         mCurrentText.setText(""+mGetDataFormat.current.get()+"A");           // 设置电流
                                         mTemperatureText.setText(""+mGetDataFormat.temperature.get()+"℃");  // 设置温度
 
-                                        if (0 == mGetDataFormat.rainStatus.get())                            // 表示晴天
+                                        if (0x0F == mGetDataFormat.rainStatus.get())                            // 表示晴天
                                             mWeatherText.setText("晴");
-                                        else if (0xFF == mGetDataFormat.rainStatus.get())
+                                        else if (0x00 == mGetDataFormat.rainStatus.get())
                                             mWeatherText.setText("雨");
 
-                                        if (0xFF == mGetDataFormat.ledAuto.get())                            // 设置光控开关
+                                        if (0x0F == mGetDataFormat.ledAuto.get())                            // 设置光控开关
                                             mLightAutoSwitch.setChecked(true);
-                                        else if (0 == mGetDataFormat.ledAuto.get())
+                                        else if (0x00 == mGetDataFormat.ledAuto.get())
                                             mLightAutoSwitch.setChecked(false);
 
-                                        if (0xFF == mGetDataFormat.ledSwitch.get())                          // 设置照明开关
+                                        if (0x0F == mGetDataFormat.ledSwitch.get())                          // 设置照明开关
                                             mLedSwitch.setChecked(true);
-                                        else if (0 == mGetDataFormat.ledSwitch.get())
+                                        else if (0x00 == mGetDataFormat.ledSwitch.get())
                                             mLedSwitch.setChecked(false);
 
-                                        if (0xFF == mGetDataFormat.powerSwitch.get())                         // 设置电源开关
+                                        if (0x0F == mGetDataFormat.powerSwitch.get())                         // 设置电源开关
                                             mPowerSwitch.setChecked(true);
-                                        else if (0 == mGetDataFormat.powerSwitch.get())
+                                        else if (0x00 == mGetDataFormat.powerSwitch.get())
                                             mPowerSwitch.setChecked(false);
 
-                                        if (0xFF == mGetDataFormat.windowAuto.get())                         // 设置自动开关窗开关
+                                        if (0x0F == mGetDataFormat.windowAuto.get())                         // 设置自动开关窗开关
                                             mWindowAutoSwitch.setChecked(true);
-                                        else if (0 == mGetDataFormat.windowAuto.get())
+                                        else if (0x00 == mGetDataFormat.windowAuto.get())
                                             mWindowAutoSwitch.setChecked(false);
 
-                                        if (0xFF == mGetDataFormat.warning.get()) {                         // 火灾报警信息
+                                        if (0x0F == mGetDataFormat.warning.get() && false == dialog_flag) {                         // 火灾报警信息
+                                            dialog_flag = true;
                                             AlertDialog dialog = new AlertDialog.Builder(HandlerActivity.this)
                                                     .setIcon(R.mipmap.warning)                               // 设置标题的图片
                                                     .setTitle("火灾报警！")                                  // 设置对话框的标题
@@ -184,6 +189,7 @@ public class HandlerActivity extends AppCompatActivity implements View.OnClickLi
                                                         public void onClick(DialogInterface dialog, int which) {
                                                             // 发送取消报警信息
                                                             //Toast.makeText(HandlerActivity.this, "点击了确定的按钮", Toast.LENGTH_SHORT).show();
+                                                            dialog_flag = false;
                                                             dialog.dismiss();                                // 消失对话框
                                                          }
                                                     }).create();
