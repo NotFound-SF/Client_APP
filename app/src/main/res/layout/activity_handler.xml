@@ -249,6 +249,7 @@
         <SeekBar
             android:id="@+id/window_seek"
             android:layout_width="320dp"
+            android:max="100"
             android:layout_height="wrap_content" />
 
         <TextView

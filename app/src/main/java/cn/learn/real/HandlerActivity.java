@@ -18,6 +18,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.Switch;
@@ -30,16 +31,18 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 
-public class HandlerActivity extends AppCompatActivity implements View.OnClickListener{
+public class HandlerActivity extends AppCompatActivity {
 
     private static final String  CONFIG_FILE = "userProfile";        // 配置文件名
     private static final String  LOGIN_FLAG = "loginFlag";           // 登录到了登录界面
     private static final String TAG = "HandlerActivity";
     private static final String USER_ID_KEY = "learn.userID";
     private static final String DEVICE_ID_KEY = "learn.deviceID";
-    private static final String SERVER_ADDRESS = "192.168.1.105";    // 服务器地址
+    private static final String SERVER_ADDRESS = "192.168.1.102";    // 服务器地址
     private static final int SERVER_PORT = 2048;                     // 服务器端口
     private boolean mConnectedFlag = false;                          // 网络连接情况
     private boolean mMainThreadEndFlag = false;                      // 判断主线程退出标志
@@ -52,6 +55,8 @@ public class HandlerActivity extends AppCompatActivity implements View.OnClickLi
     private Socket socket = null;                            // 记住添加网络权限
     private int  mUserID = 0;                                // 设备ID
     private int  mDeviceID = 0;                              // 用户ID
+    private Lock mLock = new ReentrantLock();                // 用于同步将接受的数据拷贝到临时变量区
+    private DataFormat mTempDataFormat = new DataFormat();   // 用来暂存接受到的数
     private DataFormat mSetDataFormat = new DataFormat();    // 传输的数据结构体
     private DataFormat mGetDataFormat = new DataFormat();
     private SharedPreferences mConfig = null;
@@ -76,6 +81,7 @@ public class HandlerActivity extends AppCompatActivity implements View.OnClickLi
         intent.putExtra(DEVICE_ID_KEY, deviceID);
         return intent;
     }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -105,6 +111,135 @@ public class HandlerActivity extends AppCompatActivity implements View.OnClickLi
         mTemperatureText  = (TextView) findViewById(R.id.temperature_text);
         mLightAutoSwitch  = (Switch)   findViewById(R.id.auto_light_switch);
         mWindowAutoSwitch = (Switch)   findViewById(R.id.window_auto_switch);
+
+        // 监听响应的开关switch--------------------------------------------------------------------------
+
+        mWindowAutoSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+
+                mLock.lock();
+                mSetDataFormat = new DataFormat(mTempDataFormat);               // 保证与接受到的状态相同，此处设备ID不同
+                mLock.unlock();
+
+                mSetDataFormat.userID.set(mUserID);
+                mSetDataFormat.deviceID.set(mDeviceID);
+                mSetDataFormat.operation.set((short)0x0F);
+
+                if (isChecked) {
+                    mSetDataFormat.windowAuto.set((short) 0x0F);                // 自动关窗
+                } else {
+                    mSetDataFormat.windowAuto.set((short) 0x00);
+                }
+
+                // 通过异步消息发送给发送线程
+
+                mSendHandler.sendEmptyMessage(0x01);                           // 发送空消息使得发送线程能得到执行
+
+            }
+        });
+
+        mLightAutoSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                mLock.lock();
+                mSetDataFormat = new DataFormat(mTempDataFormat);               // 保证与接受到的状态相同，此处设备ID不同
+                mLock.unlock();
+
+                mSetDataFormat.userID.set(mUserID);
+                mSetDataFormat.deviceID.set(mDeviceID);
+                mSetDataFormat.operation.set((short)0x0F);
+
+                if (isChecked) {
+                    mSetDataFormat.ledAuto.set((short) 0x0F);
+                } else {
+                    mSetDataFormat.ledAuto.set((short) 0x00);
+                }
+
+                // 通过异步消息发送给发送线程
+
+                mSendHandler.sendEmptyMessage(0x01);                           // 发送空消息使得发送线程能得到执行
+            }
+        });
+
+        mPowerSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+
+                mLock.lock();
+                mSetDataFormat = new DataFormat(mTempDataFormat);               // 保证与接受到的状态相同，此处设备ID不同
+                mLock.unlock();
+
+                mSetDataFormat.userID.set(mUserID);
+                mSetDataFormat.deviceID.set(mDeviceID);
+                mSetDataFormat.operation.set((short)0x0F);
+
+                if (isChecked) {
+                    mSetDataFormat.powerSwitch.set((short) 0x0F);
+                } else {
+                    mSetDataFormat.powerSwitch.set((short) 0x00);
+                }
+
+                mSendHandler.sendEmptyMessage(0x01);                           // 发送空消息使得发送线程能得到执行
+            }
+        });
+
+
+        mLedSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+
+                mLock.lock();
+                mSetDataFormat = new DataFormat(mTempDataFormat);               // 保证与接受到的状态相同，此处设备ID不同
+                mLock.unlock();
+
+                mSetDataFormat.userID.set(mUserID);
+                mSetDataFormat.deviceID.set(mDeviceID);
+                mSetDataFormat.operation.set((short)0x0F);
+
+                if (isChecked) {
+                    mSetDataFormat.ledSwitch.set((short) 0x0F);
+                } else {
+                    mSetDataFormat.ledSwitch.set((short) 0x00);
+                }
+
+                mSendHandler.sendEmptyMessage(0x01);                           // 发送空消息使得发送线程能得到执行
+            }
+        });
+
+
+        mWindowSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+
+            int seek_value = 0;
+
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                seek_value = progress;
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+                mLock.lock();
+                mSetDataFormat = new DataFormat(mTempDataFormat);               // 保证与接受到的状态相同，此处设备ID不同
+                mLock.unlock();
+
+                mSetDataFormat.userID.set(mUserID);
+                mSetDataFormat.deviceID.set(mDeviceID);
+                mSetDataFormat.operation.set((short)0x0F);
+
+                mSetDataFormat.window.set((short) seek_value);
+
+                mSendHandler.sendEmptyMessage(0x01);                           // 发送空消息使得发送线程能得到执行
+            }
+        });
+
+
 
         // 创建一个接受线程当数据到达时更新UI-----------------------------------------------------------------------------------
         mRecvThread = new Thread(new Runnable() {
@@ -136,26 +271,26 @@ public class HandlerActivity extends AppCompatActivity implements View.OnClickLi
 
                         // 接受单片机端回传的数据
                         while (!mMainThreadEndFlag) {                                 // 接受到的数据可能会出错
-
                             recv_len = mGetDataFormat.read(mSockInStream);            // 阻塞等待读取数据
 
                             if (data_size == recv_len) {                              // 标书数据未发生错误
                                 // 保证要设置的数据与单片机端回传的数据相同，需要互斥操作
-                                mSetDataFormat = new DataFormat(mGetDataFormat);
-                                mSetDataFormat.userID.set(mUserID);
-                                mSetDataFormat.deviceID.set(mDeviceID);
+                                mLock.lock();
+                                mTempDataFormat = new DataFormat(mGetDataFormat);     // 此处ID会与反向
+                                mLock.unlock();
 
                                 // 根据读取到的数据更新UI
                                 runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {                               // 解析接收到的数据更新UI
-                                        mCurrentText.setText(""+mGetDataFormat.current.get()+"A");           // 设置电流
-                                        mTemperatureText.setText(""+mGetDataFormat.temperature.get()+"℃");  // 设置温度
+                                        mCurrentText.setText(String.format("%.2f", mGetDataFormat.current.get())+"A");           // 设置电流
+                                        mTemperatureText.setText(String.format("%.1f", mGetDataFormat.temperature.get())+"℃");  // 设置温度
+                                        mWindowSeekBar.setProgress(mGetDataFormat.window.get());                                 // 设置拖动条
 
-                                        if (0x0F == mGetDataFormat.rainStatus.get())                            // 表示晴天
-                                            mWeatherText.setText("晴");
-                                        else if (0x00 == mGetDataFormat.rainStatus.get())
+                                        if (0x0F == mGetDataFormat.rainStatus.get())                         // 表示晴天
                                             mWeatherText.setText("雨");
+                                        else if (0x00 == mGetDataFormat.rainStatus.get())
+                                            mWeatherText.setText("晴");
 
                                         if (0x0F == mGetDataFormat.ledAuto.get())                            // 设置光控开关
                                             mLightAutoSwitch.setChecked(true);
@@ -188,23 +323,30 @@ public class HandlerActivity extends AppCompatActivity implements View.OnClickLi
                                                         @Override
                                                         public void onClick(DialogInterface dialog, int which) {
                                                             // 发送取消报警信息
-                                                            //Toast.makeText(HandlerActivity.this, "点击了确定的按钮", Toast.LENGTH_SHORT).show();
+                                                            mLock.lock();
+                                                            mSetDataFormat = new DataFormat(mTempDataFormat);               // 保证与接受到的状态相同，此处设备ID不同
+                                                            mLock.unlock();
+
+                                                            mSetDataFormat.userID.set(mUserID);
+                                                            mSetDataFormat.deviceID.set(mDeviceID);
+                                                            mSetDataFormat.operation.set((short)0x0F);
+                                                            mSetDataFormat.warning.set((short) 0x00);
+
+                                                            // 通过异步消息发送给发送线程
+                                                            mSendHandler.sendEmptyMessage(0x01);                           // 发送空消息使得发送线程能得到执行
+
                                                             dialog_flag = false;
                                                             dialog.dismiss();                                // 消失对话框
                                                          }
                                                     }).create();
                                             dialog.show();
                                         }
-
-                                        // 设置拖动条
-                                        // mWindowSeekBar
                                     }
                                 });
                             } else if(-1 == recv_len){
                                 throw new RuntimeException("netWork");              // 表示网络异常
                             }
                         }
-
                         return;                                                     // 退出子线程
                     } catch (Exception e) {
                         if (mConnectedFlag) {                                       // 如果先前连接成功就释放
@@ -244,13 +386,14 @@ public class HandlerActivity extends AppCompatActivity implements View.OnClickLi
             @Override
             public void handleMessage(Message msg) {
                 super.handleMessage(msg);
+
                 // 读取数据并且发送
                 if (mConnectedFlag) {
                     synchronized (HandlerActivity.class){           // 发送加锁
                         try {
                             mSetDataFormat.write(mSockOutStream);
                         } catch (Exception ew) {
-                            Log.d(TAG, "alive failed");
+                            Log.e(TAG, "alive failed");
                         }
                     }
                 }
@@ -273,12 +416,12 @@ public class HandlerActivity extends AppCompatActivity implements View.OnClickLi
                             try {
                                 alive.write(mSockOutStream);
                             } catch (Exception ew) {
-                                Log.d(TAG, "alive failed");
+
                             }
                         }
                     }
                     try {
-                        Thread.sleep(2000);                    // 6s检测一次
+                        Thread.sleep(1000);                       // 1000ms请求一次数据
                     } catch (Exception es) {
 
                     }
@@ -288,33 +431,6 @@ public class HandlerActivity extends AppCompatActivity implements View.OnClickLi
         mAliveThread.start();
     }
 
-    // 快捷键alt + shift + p 重写监听函数
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-
-            case R.id.led_switch:                // 设置照明开关
-                Toast.makeText(this, "led_switch", Toast.LENGTH_SHORT).show();
-                break;
-
-            case R.id.auto_light_switch:         // 自动照明设置
-                Toast.makeText(this, "auto_light_switch", Toast.LENGTH_SHORT).show();
-                break;
-
-            case R.id.power_switch:              // 设置了电源
-                Toast.makeText(this, "power_switch", Toast.LENGTH_SHORT).show();
-                break;
-
-            case R.id.window_auto_switch:       // 设置了下雨自动关窗
-                Toast.makeText(this, "window_auto_switch", Toast.LENGTH_SHORT).show();
-                break;
-        }
-
-        Log.e(TAG, "监听到View被触发");
-
-        // 交由发送线程处理
-
-    }
 
     // 添加菜单项
     @Override

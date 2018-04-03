@@ -238,7 +238,7 @@ public class ConfigActivity extends AppCompatActivity {
             }
         };
 
-        // 创建存活脉搏子线程，也是请求数据2s请求一次
+        // 创建存活脉搏子线程，也是请求数据500ms请求一次
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -256,7 +256,7 @@ public class ConfigActivity extends AppCompatActivity {
                         }
                     }
                     try {
-                        Thread.sleep(2000);                    // 3s请求一次
+                        Thread.sleep(500);                    // 3s请求一次
                     } catch (Exception es) {
 
                     }
