@@ -10,7 +10,8 @@
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp"
         android:textSize="26sp"
-        android:maxLength="8"
+        android:maxLength="11"
+        android:inputType="phone"
         android:hint="电话号码"/>
 
 </LinearLayout>

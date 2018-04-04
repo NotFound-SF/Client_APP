@@ -11,7 +11,8 @@
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp"
         android:textSize="26sp"
-        android:maxLength="8"
+        android:maxLength="30"
+        android:lines="1"
         android:hint="wifi名"/>
 
 
@@ -23,6 +24,7 @@
         android:layout_marginLeft="10dp"
         android:textSize="26sp"
         android:maxLength="30"
+        android:lines="1"
         android:hint="wifi密码"/>
 
 </LinearLayout>
