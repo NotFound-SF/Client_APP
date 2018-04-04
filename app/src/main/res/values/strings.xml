@@ -1,4 +1,4 @@
 <resources>
-    <string name="app_name">Real</string>
+    <string name="app_name">毕业设计</string>
     <string name="about_app">该APP为控制基于STM32+µC/OS-Ⅲ智能家居系统的客户端，控制界面与硬件端LCD触摸屏基本一致，APP端能设置硬件端工作时候需要连接的WIFI热点信息、火灾报警时的电话号码列表，并且可以透过服务器获取与设置硬件端的状态。在工作时请确保用户ID与设备ID是独一无二的（两者被统一编排），其中硬件端的设备ID已经固化在了单片机代码段其不可修改（测试使用的设备ID为12345），如果APP要成功远程连接硬件设备必须保证设备ID准确无误！</string>
 </resources>
