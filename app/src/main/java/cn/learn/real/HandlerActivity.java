@@ -62,6 +62,8 @@ public class HandlerActivity extends AppCompatActivity {
     private SharedPreferences mConfig = null;
     private SharedPreferences.Editor mConfigEditor = null;
 
+    private byte send_flag = 0;
+
     // View类型
 
     private Switch   mLedSwitch        = null;
@@ -279,6 +281,11 @@ public class HandlerActivity extends AppCompatActivity {
                                 mTempDataFormat = new DataFormat(mGetDataFormat);     // 此处ID会与反向
                                 mLock.unlock();
 
+                                if (0 != send_flag) {                                     // 丢弃发送数据后的第一次数据
+                                    send_flag--;
+                                    continue;
+                                }
+
                                 // 根据读取到的数据更新UI
                                 runOnUiThread(new Runnable() {
                                     @Override
@@ -392,10 +399,12 @@ public class HandlerActivity extends AppCompatActivity {
                     synchronized (HandlerActivity.class){           // 发送加锁
                         try {
                             mSetDataFormat.write(mSockOutStream);
+                            mSockOutStream.flush();
                         } catch (Exception ew) {
                             Log.e(TAG, "alive failed");
                         }
                     }
+                    send_flag = 3;                                  // 表示刚刚发送了一次数据
                 }
             }
         };
@@ -415,13 +424,14 @@ public class HandlerActivity extends AppCompatActivity {
                         synchronized (HandlerActivity.class){           // 发送加锁
                             try {
                                 alive.write(mSockOutStream);
+                                mSockOutStream.flush();
                             } catch (Exception ew) {
 
                             }
                         }
                     }
                     try {
-                        Thread.sleep(1000);                       // 1000ms请求一次数据
+                        Thread.sleep(300);                       // 1000ms请求一次数据
                     } catch (Exception es) {
 
                     }
